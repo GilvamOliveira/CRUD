@@ -5,6 +5,8 @@ const openModal = () =>
 
 const closeModal = () => {
   clearFields();
+  document.getElementById("nome").dataset.index = "new";
+  document.querySelector(".modal-header h2").textContent = "Novo Cliente";
   document.getElementById("modal").classList.remove("active");
 };
 
@@ -67,13 +69,19 @@ const saveClient = () => {
   }
 };
 
+const escapeHtml = (text) => {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+};
+
 const createRow = (client, index) => {
   const newRow = document.createElement("tr");
   newRow.innerHTML = `
-        <td>${client.nome}</td>
-        <td>${client.email}</td>
-        <td>${client.celular}</td>
-        <td>${client.cidade}</td>
+        <td>${escapeHtml(client.nome)}</td>
+        <td>${escapeHtml(client.email)}</td>
+        <td>${escapeHtml(client.celular)}</td>
+        <td>${escapeHtml(client.cidade)}</td>
         <td>
             <button type="button" class="button green" id="edit-${index}">Editar</button>
             <button type="button" class="button red" id="delete-${index}">Excluir</button>
@@ -105,6 +113,7 @@ const editClient = (index) => {
   const client = readClient()[index];
   client.index = index;
   fillFields(client);
+  document.querySelector(".modal-header h2").textContent = "Editar Cliente";
   openModal();
 };
 
