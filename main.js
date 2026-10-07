@@ -55,6 +55,7 @@ const saveClient = () => {
       cidade: document.getElementById("cidade").value,
     };
     createClient(client);
+    updateTable();
     closeModal();
   }
 };
@@ -67,15 +68,28 @@ const createRow = (client) => {
         <td>${client.celular}</td>
         <td>${client.cidade}</td>
         <td>
-            <button type="button" class="button green">editar</button>
-            <button type="button" class="button red">excluir</button>
+            <button type="button" class="button green" id="edit">Editar</button>
+            <button type="button" class="button red" id="delete">Excluir</button>
         </td>
     `;
+  document.querySelector("#tableClient>tbody").appendChild(newRow);
+};
+
+const clearTable = () => {
+  const rows = document.querySelectorAll("#tableClient>tbody tr");
+  rows.forEach((row) => row.parentNode.removeChild(row));
 };
 
 const updateTable = () => {
   const dbClient = readClient();
+  clearTable();
   dbClient.forEach(createRow);
+};
+
+const editDelete = (event) => {
+  if (event.target.type == "button") {
+    console.log(event.target.id);
+  }
 };
 
 updateTable();
@@ -88,3 +102,7 @@ document
 document.getElementById("modalClose").addEventListener("click", closeModal);
 
 document.getElementById("salvar").addEventListener("click", saveClient);
+
+document
+  .querySelector("#tableClient>tbody")
+  .addEventListener("click", editDelete);
