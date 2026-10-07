@@ -58,6 +58,7 @@ const saveClient = () => {
       email: document.getElementById("email").value,
       celular: document.getElementById("celular").value,
       cidade: document.getElementById("cidade").value,
+      estado: document.getElementById("estado").value,
     };
     const index = document.getElementById("nome").dataset.index;
 
@@ -95,6 +96,7 @@ const createRow = (client, index) => {
         <td>${escapeHtml(client.email)}</td>
         <td>${escapeHtml(client.celular)}</td>
         <td>${escapeHtml(client.cidade)}</td>
+        <td>${escapeHtml(client.estado ?? "")}</td>
         <td>
             <button type="button" class="button green" id="edit-${index}">Editar</button>
             <button type="button" class="button red" id="delete-${index}">Excluir</button>
@@ -116,8 +118,8 @@ const updateTable = () => {
 
   if (sortField) {
     list.sort((a, b) => {
-      const result = a.client[sortField].localeCompare(
-        b.client[sortField],
+      const result = (a.client[sortField] ?? "").localeCompare(
+        b.client[sortField] ?? "",
         "pt-BR",
       );
       return sortAsc ? result : -result;
@@ -126,7 +128,7 @@ const updateTable = () => {
 
   list.forEach(({ client, index }) => {
     const text =
-      `${client.nome} ${client.email} ${client.celular} ${client.cidade}`.toLowerCase();
+      `${client.nome} ${client.email} ${client.celular} ${client.cidade} ${client.estado ?? ""}`.toLowerCase();
     if (text.includes(term)) createRow(client, index);
   });
 };
@@ -136,6 +138,7 @@ const fillFields = (client) => {
   document.getElementById("email").value = client.email;
   document.getElementById("celular").value = client.celular;
   document.getElementById("cidade").value = client.cidade;
+  document.getElementById("estado").value = client.estado ?? "";
   document.getElementById("nome").dataset.index = client.index;
 };
 
