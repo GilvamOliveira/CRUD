@@ -152,6 +152,18 @@ const editDelete = (event) => {
 
 updateTable();
 
+const maskPhone = (event) => {
+  let digits = event.target.value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length > 6) {
+    digits = `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  } else if (digits.length > 2) {
+    digits = `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  } else if (digits.length > 0) {
+    digits = `(${digits}`;
+  }
+  event.target.value = digits;
+};
+
 // Eventos
 document
   .getElementById("cadastrarCliente")
@@ -172,3 +184,5 @@ document.getElementById("busca").addEventListener("input", updateTable);
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeModal();
 });
+
+document.getElementById("celular").addEventListener("input", maskPhone);
