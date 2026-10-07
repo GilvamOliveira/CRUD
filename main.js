@@ -168,3 +168,7 @@ document
 document.getElementById("cancelar").addEventListener("click", closeModal);
 
 document.getElementById("busca").addEventListener("input", updateTable);
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeModal();
+});
