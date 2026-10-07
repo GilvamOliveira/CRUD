@@ -43,7 +43,7 @@ const createClient = (client) => {
 // Interação com o layout
 
 const clearFields = () => {
-  const fields = document.querySelectorAll(".modal-field");
+  const fields = document.querySelectorAll("#form .modal-field");
   fields.forEach((field) => (field.value = ""));
 };
 
