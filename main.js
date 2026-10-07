@@ -1,5 +1,8 @@
 "use strict";
 
+let sortField = null;
+let sortAsc = true;
+
 const openModal = () =>
   document.getElementById("modal").classList.add("active");
 
@@ -108,7 +111,20 @@ const clearTable = () => {
 const updateTable = () => {
   const term = document.getElementById("busca").value.toLowerCase();
   clearTable();
-  readClient().forEach((client, index) => {
+
+  let list = readClient().map((client, index) => ({ client, index }));
+
+  if (sortField) {
+    list.sort((a, b) => {
+      const result = a.client[sortField].localeCompare(
+        b.client[sortField],
+        "pt-BR",
+      );
+      return sortAsc ? result : -result;
+    });
+  }
+
+  list.forEach(({ client, index }) => {
     const text =
       `${client.nome} ${client.email} ${client.celular} ${client.cidade}`.toLowerCase();
     if (text.includes(term)) createRow(client, index);
@@ -186,3 +202,13 @@ document.addEventListener("keydown", (event) => {
 });
 
 document.getElementById("celular").addEventListener("input", maskPhone);
+
+document
+  .querySelector("#tableClient thead")
+  .addEventListener("click", (event) => {
+    const field = event.target.dataset.field;
+    if (!field) return;
+    sortAsc = sortField === field ? !sortAsc : true;
+    sortField = field;
+    updateTable();
+  });
