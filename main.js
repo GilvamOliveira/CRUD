@@ -3,14 +3,9 @@
 const openModal = () =>
   document.getElementById("modal").classList.add("active");
 
-const closeModal = () =>
+const closeModal = () => {
+  clearFields();
   document.getElementById("modal").classList.remove("active");
-
-const tempClient = {
-  nome: "Larissa",
-  email: "larissa@gmail.com",
-  celular: "11934567890",
-  cidade: "Guarulhos",
 };
 
 const getLocalStorage = () =>
@@ -45,11 +40,45 @@ const isValidFields = () => {
 };
 
 // Interação com o layout
+
+const clearFields = () => {
+  const fields = document.querySelectorAll(".modal-field");
+  fields.forEach((field) => (field.value = ""));
+};
+
 const saveClient = () => {
   if (isValidFields()) {
-    console.log("cadastrando cliente");
+    const client = {
+      nome: document.getElementById("nome").value,
+      email: document.getElementById("email").value,
+      celular: document.getElementById("celular").value,
+      cidade: document.getElementById("cidade").value,
+    };
+    createClient(client);
+    closeModal();
   }
 };
+
+const createRow = (client) => {
+  const newRow = document.createElement("tr");
+  newRow.innerHTML = `
+        <td>${client.nome}</td>
+        <td>${client.email}</td>
+        <td>${client.celular}</td>
+        <td>${client.cidade}</td>
+        <td>
+            <button type="button" class="button green">editar</button>
+            <button type="button" class="button red">excluir</button>
+        </td>
+    `;
+};
+
+const updateTable = () => {
+  const dbClient = readClient();
+  dbClient.forEach(createRow);
+};
+
+updateTable();
 
 // Eventos
 document
