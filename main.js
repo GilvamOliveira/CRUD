@@ -57,6 +57,16 @@ const saveClient = () => {
       cidade: document.getElementById("cidade").value,
     };
     const index = document.getElementById("nome").dataset.index;
+
+    const emailExists = readClient().some(
+      (c, i) =>
+        c.email.toLowerCase() === client.email.toLowerCase() &&
+        String(i) !== index,
+    );
+    if (emailExists) {
+      alert("Já existe um cliente com esse e-mail.");
+      return;
+    }
     if (index == "new") {
       createClient(client);
       updateTable();
@@ -96,9 +106,13 @@ const clearTable = () => {
 };
 
 const updateTable = () => {
-  const dbClient = readClient();
+  const term = document.getElementById("busca").value.toLowerCase();
   clearTable();
-  dbClient.forEach(createRow);
+  readClient().forEach((client, index) => {
+    const text =
+      `${client.nome} ${client.email} ${client.celular} ${client.cidade}`.toLowerCase();
+    if (text.includes(term)) createRow(client, index);
+  });
 };
 
 const fillFields = (client) => {
@@ -150,3 +164,7 @@ document.getElementById("salvar").addEventListener("click", saveClient);
 document
   .querySelector("#tableClient>tbody")
   .addEventListener("click", editDelete);
+
+document.getElementById("cancelar").addEventListener("click", closeModal);
+
+document.getElementById("busca").addEventListener("input", updateTable);
