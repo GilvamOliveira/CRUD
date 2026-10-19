@@ -1,0 +1,13 @@
+{
+  "name": "crud-clientes-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API REST e servidor estático do Cadastro de Clientes",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}
