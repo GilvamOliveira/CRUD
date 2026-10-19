@@ -6,6 +6,12 @@ Aplicação web para **cadastrar, listar, editar e excluir clientes**, feita com
 
 ![Tela do sistema](img/tela.png)
 
+## Demonstração
+
+![Demonstração do CRUD em funcionamento](img/demo.gif)
+
+Cadastro de cliente, busca, filtros, paginação e exclusão em lote com desfazer.
+
 ## Funcionalidades
 
 - **Cadastrar, editar e excluir** clientes (nome, e-mail, celular, cidade e estado)
