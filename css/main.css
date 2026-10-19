@@ -79,6 +79,24 @@ main {
     color: #777;
 }
 
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.pagination-info {
+    font-size: .9rem;
+}
+
+.pagination .button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
 footer {
     width: 100;
     text-align: center;

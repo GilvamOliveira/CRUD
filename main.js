@@ -1,7 +1,15 @@
 "use strict";
 
+const PAGE_SIZE = 5;
+const API_URL = location.protocol.startsWith("http")
+  ? `${location.origin}/api`
+  : "http://localhost:3000/api";
+
 let sortField = null;
 let sortAsc = true;
+let currentPage = 1;
+let clientes = [];
+let useApi = false;
 
 const CSV_HEADERS = ["Nome", "E-mail", "Celular", "Cidade", "Estado"];
 
@@ -12,15 +20,295 @@ const openModal = () => {
 
 const closeModal = () => {
   clearFields();
-  document.getElementById("nome").dataset.index = "new";
+  document.getElementById("nome").dataset.id = "new";
   document.getElementById("modalTitle").textContent = "Novo Cliente";
   document.getElementById("modal").classList.remove("active");
 };
+
+// Persistência local (fallback)
 
 const getLocalStorage = () =>
   JSON.parse(localStorage.getItem("db_client")) ?? [];
 const setLocalStorage = (dbClient) =>
   localStorage.setItem("db_client", JSON.stringify(dbClient));
+
+const localList = () => {
+  const dbClient = getLocalStorage();
+  let maxId = dbClient.reduce((max, c) => Math.max(max, Number(c.id) || 0), 0);
+  let migrated = false;
+
+  dbClient.forEach((client) => {
+    if (!(Number(client.id) > 0)) {
+      maxId += 1;
+      client.id = maxId;
+      migrated = true;
+    }
+  });
+
+  if (migrated) setLocalStorage(dbClient);
+  return dbClient;
+};
+
+const localCreate = (client) => {
+  const dbClient = localList();
+  const created = {
+    ...client,
+    id: dbClient.reduce((max, c) => Math.max(max, Number(c.id) || 0), 0) + 1,
+  };
+  dbClient.push(created);
+  setLocalStorage(dbClient);
+  return created;
+};
+
+const localUpdate = (id, client) => {
+  const dbClient = localList();
+  const index = dbClient.findIndex((c) => String(c.id) === String(id));
+  if (index < 0) return null;
+  const updated = { ...client, id: dbClient[index].id };
+  dbClient[index] = updated;
+  setLocalStorage(dbClient);
+  return updated;
+};
+
+const localRemove = (id) => {
+  const dbClient = localList().filter((c) => String(c.id) !== String(id));
+  setLocalStorage(dbClient);
+};
+
+// API REST
+
+const apiRequest = async (path, options = {}) => {
+  const response = await fetch(`${API_URL}${path}`, {
+    headers: { "Content-Type": "application/json" },
+    ...options,
+  });
+
+  if (!response.ok) {
+    let message = "Erro na comunicação com o servidor.";
+    try {
+      const body = await response.json();
+      if (body?.error) message = body.error;
+    } catch {}
+    throw new Error(message);
+  }
+
+  return response.json();
+};
+
+const detectDataSource = async () => {
+  if (location.protocol === "file:" || location.hostname.endsWith("github.io")) {
+    useApi = false;
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/health`, { cache: "no-store" });
+    useApi = response.ok;
+  } catch {
+    useApi = false;
+  }
+};
+
+// Camada de dados (API ou localStorage)
+
+const loadClients = async () =>
+  useApi ? apiRequest("/clientes") : localList();
+
+const createClient = async (client) =>
+  useApi
+    ? apiRequest("/clientes", { method: "POST", body: JSON.stringify(client) })
+    : localCreate(client);
+
+const updateClient = async (id, client) =>
+  useApi
+    ? apiRequest(`/clientes/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(client),
+      })
+    : localUpdate(id, client);
+
+const removeClient = async (id) =>
+  useApi
+    ? apiRequest(`/clientes/${id}`, { method: "DELETE" })
+    : localRemove(id);
+
+const refresh = async () => {
+  try {
+    clientes = await loadClients();
+  } catch {
+    clientes = [];
+  }
+  renderTable();
+};
+
+// Interação com o layout
+
+const clearFields = () => {
+  const fields = document.querySelectorAll("#form .modal-field");
+  fields.forEach((field) => (field.value = ""));
+};
+
+const isValidFields = () => {
+  return document.getElementById("form").reportValidity();
+};
+
+const findDuplicated = (client, id) => ({
+  email: clientes.some(
+    (c) =>
+      c.email.toLowerCase() === client.email.toLowerCase() &&
+      String(c.id) !== String(id),
+  ),
+  celular: clientes.some(
+    (c) => c.celular === client.celular && String(c.id) !== String(id),
+  ),
+});
+
+const saveClient = async () => {
+  if (!isValidFields()) return;
+
+  const client = {
+    nome: document.getElementById("nome").value.trim(),
+    email: document.getElementById("email").value.trim(),
+    celular: document.getElementById("celular").value.trim(),
+    cidade: document.getElementById("cidade").value.trim(),
+    estado: document.getElementById("estado").value,
+  };
+
+  if (!client.nome || !client.email || !client.cidade) {
+    alert("Preencha todos os campos.");
+    return;
+  }
+
+  const id = document.getElementById("nome").dataset.id || "new";
+  const duplicated = findDuplicated(client, id);
+
+  if (duplicated.email) {
+    alert("Já existe um cliente com esse e-mail.");
+    return;
+  }
+  if (duplicated.celular) {
+    alert("Já existe um cliente com esse celular.");
+    return;
+  }
+
+  try {
+    if (id === "new") {
+      await createClient(client);
+    } else {
+      await updateClient(id, client);
+    }
+  } catch (error) {
+    alert(error.message);
+    return;
+  }
+
+  await refresh();
+  closeModal();
+};
+
+const escapeHtml = (text) => {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+};
+
+const createRow = (client) => {
+  const newRow = document.createElement("tr");
+  newRow.innerHTML = `
+        <td>${escapeHtml(client.nome)}</td>
+        <td>${escapeHtml(client.email)}</td>
+        <td>${escapeHtml(client.celular)}</td>
+        <td>${escapeHtml(client.cidade)}</td>
+        <td>${escapeHtml(client.estado ?? "")}</td>
+        <td>
+            <button type="button" class="button green" data-action="edit" data-id="${escapeHtml(String(client.id))}">Editar</button>
+            <button type="button" class="button red" data-action="delete" data-id="${escapeHtml(String(client.id))}">Excluir</button>
+        </td>
+    `;
+  document.querySelector("#tableClient>tbody").appendChild(newRow);
+};
+
+const clearTable = () => {
+  const rows = document.querySelectorAll("#tableClient>tbody tr");
+  rows.forEach((row) => row.parentNode.removeChild(row));
+};
+
+const updateSortIndicators = () => {
+  document
+    .querySelectorAll("#tableClient thead th[data-field]")
+    .forEach((th) => {
+      th.classList.toggle("sort-asc", th.dataset.field === sortField && sortAsc);
+      th.classList.toggle(
+        "sort-desc",
+        th.dataset.field === sortField && !sortAsc,
+      );
+    });
+};
+
+const updatePagination = (totalPages) => {
+  const pager = document.getElementById("paginacao");
+  pager.hidden = totalPages <= 1;
+
+  document.getElementById("paginaInfo").textContent =
+    `Página ${currentPage} de ${totalPages}`;
+  document.getElementById("paginaAnterior").disabled = currentPage === 1;
+  document.getElementById("paginaProxima").disabled = currentPage === totalPages;
+};
+
+const updateRecordsInfo = (visible, total, term, totalPages) => {
+  const info = document.getElementById("contador");
+  const empty = document.getElementById("vazio");
+
+  empty.hidden = visible > 0;
+
+  if (total === 0) {
+    info.textContent = "Nenhum cliente cadastrado.";
+    empty.textContent =
+      'Cadastre o primeiro cliente clicando em "Cadastrar Cliente".';
+    updatePagination(1);
+    return;
+  }
+
+  info.textContent = term
+    ? `${visible} de ${total} cliente(s) encontrado(s).`
+    : `${total} cliente(s) cadastrado(s).`;
+  empty.textContent = "Nenhum cliente encontrado para a busca.";
+  updatePagination(totalPages);
+};
+
+const renderTable = () => {
+  const term = document.getElementById("busca").value.trim().toLowerCase();
+  clearTable();
+
+  const list = clientes.slice();
+
+  if (sortField) {
+    list.sort((a, b) => {
+      const result = (a[sortField] ?? "").localeCompare(
+        b[sortField] ?? "",
+        "pt-BR",
+      );
+      return sortAsc ? result : -result;
+    });
+  }
+
+  const visible = list.filter((client) => {
+    const text =
+      `${client.nome} ${client.email} ${client.celular} ${client.cidade} ${client.estado ?? ""}`.toLowerCase();
+    return text.includes(term);
+  });
+
+  const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = visible.slice(start, start + PAGE_SIZE);
+
+  updateSortIndicators();
+  pageItems.forEach((client) => createRow(client));
+  updateRecordsInfo(visible.length, clientes.length, term, totalPages);
+};
+
+// Exportação e backup
 
 const downloadFile = (content, filename, type) => {
   const blob = new Blob([content], { type });
@@ -35,7 +323,7 @@ const downloadFile = (content, filename, type) => {
 };
 
 const exportCsv = () => {
-  const rows = readClient().map((client) => [
+  const rows = clientes.map((client) => [
     client.nome,
     client.email,
     client.celular,
@@ -52,7 +340,7 @@ const exportCsv = () => {
 
 const exportBackup = () => {
   downloadFile(
-    JSON.stringify(readClient(), null, 2),
+    JSON.stringify(clientes, null, 2),
     "clientes-backup.json",
     "application/json",
   );
@@ -73,7 +361,7 @@ const importBackup = (event) => {
 
   const reader = new FileReader();
 
-  reader.onload = () => {
+  reader.onload = async () => {
     let data;
     try {
       data = JSON.parse(reader.result);
@@ -87,31 +375,35 @@ const importBackup = (event) => {
       return;
     }
 
-    const dbClient = readClient();
+    const merged = clientes.slice();
     let imported = 0;
     let skipped = 0;
 
-    data.forEach((item) => {
+    for (const item of data) {
       const client = normalizeClient(item);
       if (!client.nome || !client.email) {
         skipped++;
-        return;
+        continue;
       }
 
-      const duplicated = dbClient.some(
+      const duplicated = merged.some(
         (c) => c.email.toLowerCase() === client.email.toLowerCase(),
       );
       if (duplicated) {
         skipped++;
-        return;
+        continue;
       }
 
-      dbClient.push(client);
-      imported++;
-    });
+      try {
+        await createClient(client);
+        merged.push(client);
+        imported++;
+      } catch {
+        skipped++;
+      }
+    }
 
-    setLocalStorage(dbClient);
-    updateTable();
+    await refresh();
     alert(
       `Importação concluída: ${imported} cliente(s) adicionado(s), ${skipped} ignorado(s).`,
     );
@@ -121,175 +413,7 @@ const importBackup = (event) => {
   reader.readAsText(file);
 };
 
-// CRUD -> Create, Read, Update and Delete
-
-const deleteClient = (index) => {
-  const dbClient = readClient();
-  dbClient.splice(index, 1);
-  setLocalStorage(dbClient);
-};
-
-const updateClient = (index, client) => {
-  const dbClient = readClient();
-  dbClient[index] = client;
-  setLocalStorage(dbClient);
-};
-
-const readClient = () => getLocalStorage();
-
-const createClient = (client) => {
-  const dbClient = getLocalStorage();
-  dbClient.push(client);
-  setLocalStorage(dbClient);
-};
-
-// Interação com o layout
-
-const clearFields = () => {
-  const fields = document.querySelectorAll("#form .modal-field");
-  fields.forEach((field) => (field.value = ""));
-};
-
-const isValidFields = () => {
-  return document.getElementById("form").reportValidity();
-};
-
-const saveClient = () => {
-  if (isValidFields()) {
-    const client = {
-      nome: document.getElementById("nome").value.trim(),
-      email: document.getElementById("email").value.trim(),
-      celular: document.getElementById("celular").value.trim(),
-      cidade: document.getElementById("cidade").value.trim(),
-      estado: document.getElementById("estado").value,
-    };
-
-    if (!client.nome || !client.email || !client.cidade) {
-      alert("Preencha todos os campos.");
-      return;
-    }
-
-    const index = document.getElementById("nome").dataset.index;
-    const dbClient = readClient();
-
-    const emailExists = dbClient.some(
-      (c, i) =>
-        c.email.toLowerCase() === client.email.toLowerCase() &&
-        String(i) !== index,
-    );
-    if (emailExists) {
-      alert("Já existe um cliente com esse e-mail.");
-      return;
-    }
-
-    const phoneExists = dbClient.some(
-      (c, i) => c.celular === client.celular && String(i) !== index,
-    );
-    if (phoneExists) {
-      alert("Já existe um cliente com esse celular.");
-      return;
-    }
-
-    if (index == "new") {
-      createClient(client);
-      updateTable();
-      closeModal();
-    } else {
-      updateClient(index, client);
-      updateTable();
-      closeModal();
-    }
-  }
-};
-
-const escapeHtml = (text) => {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
-};
-
-const createRow = (client, index) => {
-  const newRow = document.createElement("tr");
-  newRow.innerHTML = `
-        <td>${escapeHtml(client.nome)}</td>
-        <td>${escapeHtml(client.email)}</td>
-        <td>${escapeHtml(client.celular)}</td>
-        <td>${escapeHtml(client.cidade)}</td>
-        <td>${escapeHtml(client.estado ?? "")}</td>
-        <td>
-            <button type="button" class="button green" id="edit-${index}">Editar</button>
-            <button type="button" class="button red" id="delete-${index}">Excluir</button>
-        </td>
-    `;
-  document.querySelector("#tableClient>tbody").appendChild(newRow);
-};
-
-const clearTable = () => {
-  const rows = document.querySelectorAll("#tableClient>tbody tr");
-  rows.forEach((row) => row.parentNode.removeChild(row));
-};
-
-const updateSortIndicators = () => {
-  document
-    .querySelectorAll("#tableClient thead th[data-field]")
-    .forEach((th) => {
-      th.classList.toggle(
-        "sort-asc",
-        th.dataset.field === sortField && sortAsc,
-      );
-      th.classList.toggle(
-        "sort-desc",
-        th.dataset.field === sortField && !sortAsc,
-      );
-    });
-};
-
-const updateRecordsInfo = (visible, total, term) => {
-  const info = document.getElementById("contador");
-  const empty = document.getElementById("vazio");
-
-  empty.hidden = visible > 0;
-
-  if (total === 0) {
-    info.textContent = "Nenhum cliente cadastrado.";
-    empty.textContent =
-      'Cadastre o primeiro cliente clicando em "Cadastrar Cliente".';
-    return;
-  }
-
-  info.textContent = term
-    ? `${visible} de ${total} cliente(s) encontrado(s).`
-    : `${total} cliente(s) cadastrado(s).`;
-  empty.textContent = "Nenhum cliente encontrado para a busca.";
-};
-
-const updateTable = () => {
-  const term = document.getElementById("busca").value.trim().toLowerCase();
-  clearTable();
-
-  const list = readClient().map((client, index) => ({ client, index }));
-
-  if (sortField) {
-    list.sort((a, b) => {
-      const result = (a.client[sortField] ?? "").localeCompare(
-        b.client[sortField] ?? "",
-        "pt-BR",
-      );
-      return sortAsc ? result : -result;
-    });
-  }
-
-  updateSortIndicators();
-
-  const visible = list.filter(({ client }) => {
-    const text =
-      `${client.nome} ${client.email} ${client.celular} ${client.cidade} ${client.estado ?? ""}`.toLowerCase();
-    return text.includes(term);
-  });
-
-  visible.forEach(({ client, index }) => createRow(client, index));
-  updateRecordsInfo(visible.length, list.length, term);
-};
+// Edição e exclusão
 
 const fillFields = (client) => {
   document.getElementById("nome").value = client.nome;
@@ -297,37 +421,45 @@ const fillFields = (client) => {
   document.getElementById("celular").value = client.celular;
   document.getElementById("cidade").value = client.cidade;
   document.getElementById("estado").value = client.estado ?? "";
-  document.getElementById("nome").dataset.index = client.index;
+  document.getElementById("nome").dataset.id = client.id;
 };
 
-const editClient = (index) => {
-  const client = readClient()[index];
-  client.index = index;
+const editClient = (id) => {
+  const client = clientes.find((c) => String(c.id) === String(id));
+  if (!client) return;
   fillFields(client);
   document.getElementById("modalTitle").textContent = "Editar Cliente";
   openModal();
 };
 
-const editDelete = (event) => {
-  if (event.target.type == "button") {
-    const [action, index] = event.target.id.split("-");
+const editDelete = async (event) => {
+  const button = event.target.closest("button[data-action]");
+  if (!button) return;
 
-    if (action == "edit") {
-      editClient(index);
-    } else {
-      const client = readClient()[index];
-      const response = confirm(
-        `Deseja realmente excluir o(a) cliente ${client.nome}?`,
-      );
-      if (response) {
-        deleteClient(index);
-        updateTable();
-      }
-    }
+  const { action, id } = button.dataset;
+
+  if (action === "edit") {
+    editClient(id);
+    return;
   }
-};
 
-updateTable();
+  const client = clientes.find((c) => String(c.id) === String(id));
+  if (!client) return;
+
+  const response = confirm(
+    `Deseja realmente excluir o(a) cliente ${client.nome}?`,
+  );
+  if (!response) return;
+
+  try {
+    await removeClient(id);
+  } catch (error) {
+    alert(error.message);
+    return;
+  }
+
+  await refresh();
+};
 
 const maskPhone = (event) => {
   let digits = event.target.value.replace(/\D/g, "").slice(0, 11);
@@ -356,7 +488,10 @@ document
 
 document.getElementById("cancelar").addEventListener("click", closeModal);
 
-document.getElementById("busca").addEventListener("input", updateTable);
+document.getElementById("busca").addEventListener("input", () => {
+  currentPage = 1;
+  renderTable();
+});
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeModal();
@@ -377,11 +512,23 @@ document.getElementById("exportarBackup").addEventListener("click", exportBackup
 
 document
   .getElementById("importarBackup")
-  .addEventListener("click", () => document.getElementById("arquivoBackup").click());
+  .addEventListener("click", () =>
+    document.getElementById("arquivoBackup").click(),
+  );
 
 document
   .getElementById("arquivoBackup")
   .addEventListener("change", importBackup);
+
+document.getElementById("paginaAnterior").addEventListener("click", () => {
+  currentPage -= 1;
+  renderTable();
+});
+
+document.getElementById("paginaProxima").addEventListener("click", () => {
+  currentPage += 1;
+  renderTable();
+});
 
 document
   .querySelector("#tableClient thead")
@@ -390,5 +537,13 @@ document
     if (!field) return;
     sortAsc = sortField === field ? !sortAsc : true;
     sortField = field;
-    updateTable();
+    currentPage = 1;
+    renderTable();
   });
+
+const init = async () => {
+  await detectDataSource();
+  await refresh();
+};
+
+init();
