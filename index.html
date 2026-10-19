@@ -27,30 +27,51 @@
       <button type="button" class="button blue mobile" id="cadastrarCliente">
         Cadastrar Cliente
       </button>
-      <input
-        type="text"
-        id="busca"
-        class="modal-field"
-        placeholder="Buscar cliente..."
-      />
+      <div class="toolbar">
+        <input
+          type="text"
+          id="busca"
+          class="modal-field"
+          placeholder="Buscar cliente..."
+        />
+        <div class="toolbar-actions">
+          <button type="button" class="button blue" id="exportarCsv">
+            Exportar CSV
+          </button>
+          <button type="button" class="button blue" id="exportarBackup">
+            Exportar JSON
+          </button>
+          <button type="button" class="button blue" id="importarBackup">
+            Importar JSON
+          </button>
+          <input
+            type="file"
+            id="arquivoBackup"
+            accept=".json,application/json"
+            hidden
+          />
+        </div>
+      </div>
+      <p id="contador" class="records-info"></p>
       <table id="tableClient" class="records">
         <thead>
           <tr>
-            <th data-field="nome" style="cursor: pointer">Nome</th>
-            <th data-field="email" style="cursor: pointer">E-mail</th>
-            <th data-field="celular" style="cursor: pointer">Celular</th>
-            <th data-field="cidade" style="cursor: pointer">Cidade</th>
-            <th data-field="estado" style="cursor: pointer">Estado</th>
+            <th data-field="nome">Nome</th>
+            <th data-field="email">E-mail</th>
+            <th data-field="celular">Celular</th>
+            <th data-field="cidade">Cidade</th>
+            <th data-field="estado">Estado</th>
             <th>Ação</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
-      <div class="modal" id="modal">
+      <div class="empty-state" id="vazio" hidden></div>
+      <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal-content">
           <header class="modal-header">
-            <h2>Novo Cliente</h2>
-            <span class="modal-close" id="modalClose">&#10006;</span>
+            <h2 id="modalTitle">Novo Cliente</h2>
+            <span class="modal-close" id="modalClose" role="button" aria-label="Fechar">&#10006;</span>
           </header>
           <form id="form" class="modal-form">
             <input

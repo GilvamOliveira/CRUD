@@ -11,6 +11,20 @@
     font-size: 1.2rem;
 }
 
+.records th[data-field] {
+    cursor: pointer;
+}
+
+.records th.sort-asc::after {
+    content: " \25B2";
+    font-size: .7em;
+}
+
+.records th.sort-desc::after {
+    content: " \25BC";
+    font-size: .7em;
+}
+
 .records td {
     height: 50px;
     padding-left: 20px;
