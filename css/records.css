@@ -15,6 +15,13 @@
     cursor: pointer;
 }
 
+.records .check-col {
+    width: 44px;
+    min-width: 44px;
+    padding: 0;
+    text-align: center;
+}
+
 .records th.sort-asc::after {
     content: " \25B2";
     font-size: .7em;

@@ -6,11 +6,14 @@
     height: 100%;
     background: #00000090;
     opacity: 0;
+    visibility: hidden;
     z-index: -1;
+    transition: opacity .2s ease, visibility .2s;
 }
 
 .modal.active {
     opacity: 1;
+    visibility: visible;
     z-index: 1;
 }
 
@@ -75,6 +78,53 @@
     box-shadow: 0 0 3px var(--primary-color);
 }
 
+.modal-field.input-error {
+    border: 2px solid #D93A3A;
+    box-shadow: 0 0 3px #D93A3A;
+}
+
+.modal-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: calc(50% - 10px);
+}
+
+.modal-field-group .modal-field {
+    width: 100%;
+}
+
+.field-error {
+    min-height: 1em;
+    color: #D93A3A;
+    font-size: .78rem;
+}
+
+.modal-small {
+    width: min(420px, 90vw);
+    margin: 20vh auto;
+}
+
+.confirm-message {
+    padding: 0 20px;
+    line-height: 1.5;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 20px 10px;
+}
+
+.login-form .modal-field {
+    width: 100%;
+}
+
+.login-hint {
+    font-size: .9rem;
+    color: #555;
+}
 
 .modal-footer {
     background-color: inherit;
@@ -98,7 +148,12 @@
         position: fixed;
     }
 
-    .modal-field {
+    .modal-field,
+    .modal-field-group {
         width: 100%;
+    }
+
+    .modal-small {
+        margin: 0;
     }
 }

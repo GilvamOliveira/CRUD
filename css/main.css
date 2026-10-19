@@ -19,6 +19,10 @@ body {
     position: relative;
 }
 
+body.modal-open {
+    overflow: hidden;
+}
+
 header {
     background-color: var(--primary-color);
     height: 70px;
@@ -42,6 +46,104 @@ main {
     padding: 50px;
     box-shadow: 2px 2px 10px var(--shadow-color);
     gap: 20px;
+}
+
+.mode-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 12px;
+    font-size: .9rem;
+    border-radius: 4px;
+}
+
+.mode-banner.local {
+    background-color: #FFF4CC;
+    color: #6B5200;
+}
+
+.mode-banner.api {
+    background-color: #E3F9EC;
+    color: #146C43;
+}
+
+.mode-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: currentColor;
+}
+
+.link-button {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+    font: inherit;
+}
+
+.dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    width: 100%;
+}
+
+.stat-card {
+    flex: 1;
+    min-width: 160px;
+    padding: 15px 20px;
+    background-color: var(--secundary-color);
+    border-left: 4px solid var(--primary-color);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-label {
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: #555;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+}
+
+.stat-states {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.state-chip {
+    background-color: #F2F2F2;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: .85rem;
+}
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.filters .modal-field {
+    flex: 1;
+    width: auto;
+    min-width: 170px;
+}
+
+.filters .button {
+    flex: 0 0 auto;
 }
 
 .toolbar {
@@ -97,6 +199,106 @@ main {
     box-shadow: none;
 }
 
+.loading {
+    position: fixed;
+    inset: 0;
+    background-color: #00000040;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.loading[hidden] {
+    display: none;
+}
+
+.spinner {
+    width: 46px;
+    height: 46px;
+    border: 5px solid #FFFFFF80;
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.toast-container {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: min(360px, 90vw);
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    color: white;
+    background-color: #333;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px #00000040;
+    font-size: .9rem;
+    animation: toast-in .2s ease;
+}
+
+.toast-success {
+    background-color: #13A85C;
+}
+
+.toast-error {
+    background-color: #D93A3A;
+}
+
+.toast-text {
+    flex: 1;
+}
+
+.toast-action {
+    background: none;
+    border: none;
+    color: white;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: .9rem;
+    cursor: pointer;
+}
+
+.toast-out {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: .2s;
+}
+
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
 footer {
     width: 100;
     text-align: center;
@@ -122,20 +324,41 @@ footer {
         box-shadow: none;
     }
 
-    .toolbar {
+    .toolbar,
+    .filters,
+    .dashboard {
         padding: 0 10px;
     }
 
     .toolbar .modal-field,
-    .toolbar-actions {
+    .toolbar-actions,
+    .filters .modal-field,
+    .filters .button {
         width: 100%;
+        flex: 1 1 100%;
     }
 
     .toolbar-actions .button {
         flex: 1;
     }
 
+    .stat-card {
+        min-width: 100%;
+    }
+
     .records-info {
         padding: 0 10px;
+    }
+
+    .pagination {
+        flex-wrap: wrap;
+        padding: 0 10px;
+    }
+
+    .toast-container {
+        left: 10px;
+        right: 10px;
+        bottom: 90px;
+        max-width: none;
     }
 }

@@ -15,7 +15,11 @@
     <link rel="stylesheet" href="css/modal.css" />
 
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <script src="main.js" defer></script>
+    <script src="js/validacao.js" defer></script>
+    <script src="js/storage.js" defer></script>
+    <script src="js/api.js" defer></script>
+    <script src="js/ui.js" defer></script>
+    <script src="js/app.js" defer></script>
     <title>CRUD</title>
   </head>
 
@@ -24,9 +28,18 @@
       <h1 class="header-title">Cadastro de Clientes</h1>
     </header>
     <main>
+      <div class="mode-banner local" id="modoBanner" hidden>
+        <span class="mode-dot"></span>
+        <span id="modoTexto"></span>
+        <button type="button" class="link-button" id="sair" hidden>Sair</button>
+      </div>
+
       <button type="button" class="button blue mobile" id="cadastrarCliente">
         Cadastrar Cliente
       </button>
+
+      <section class="dashboard" id="dashboard" hidden></section>
+
       <div class="toolbar">
         <input
           type="text"
@@ -52,10 +65,42 @@
           />
         </div>
       </div>
+
+      <div class="filters">
+        <select
+          id="filtroEstado"
+          class="modal-field"
+          aria-label="Filtrar por estado"
+        >
+          <option value="">Todos os estados</option>
+        </select>
+        <input
+          type="text"
+          id="filtroCidade"
+          class="modal-field"
+          placeholder="Filtrar por cidade"
+          aria-label="Filtrar por cidade"
+        />
+        <button type="button" class="button blue" id="limparFiltros">
+          Limpar filtros
+        </button>
+        <button type="button" class="button red" id="excluirSelecionados" disabled>
+          Excluir selecionados
+        </button>
+      </div>
+
       <p id="contador" class="records-info"></p>
+
       <table id="tableClient" class="records">
         <thead>
           <tr>
+            <th class="check-col">
+              <input
+                type="checkbox"
+                id="selecionarTodos"
+                aria-label="Selecionar todos os clientes da página"
+              />
+            </th>
             <th data-field="nome">Nome</th>
             <th data-field="email">E-mail</th>
             <th data-field="celular">Celular</th>
@@ -66,7 +111,9 @@
         </thead>
         <tbody></tbody>
       </table>
+
       <div class="empty-state" id="vazio" hidden></div>
+
       <nav class="pagination" id="paginacao" hidden>
         <button type="button" class="button blue" id="paginaAnterior">
           Anterior
@@ -76,81 +123,161 @@
           Próxima
         </button>
       </nav>
-      <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+
+      <div
+        class="modal"
+        id="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+        aria-hidden="true"
+      >
         <div class="modal-content">
           <header class="modal-header">
             <h2 id="modalTitle">Novo Cliente</h2>
             <span class="modal-close" id="modalClose" role="button" aria-label="Fechar">&#10006;</span>
           </header>
-          <form id="form" class="modal-form">
-            <input
-              type="text"
-              id="nome"
-              data-id="new"
-              class="modal-field"
-              placeholder="Nome do Cliente"
-              required
-            />
-            <input
-              type="email"
-              id="email"
-              class="modal-field"
-              placeholder="e-mail do Cliente"
-              required
-            />
-            <input
-              type="text"
-              id="celular"
-              class="modal-field"
-              placeholder="Celular do Cliente"
-              pattern="\(\d{2}\) \d{5}-\d{4}"
-              title="Use o formato (11) 99999-8888"
-              required
-            />
-            <input
-              type="text"
-              id="cidade"
-              class="modal-field"
-              placeholder="Cidade do Cliente"
-              required
-            />
-            <select id="estado" class="modal-field" required>
-              <option value="">Estado</option>
-              <option value="AC">AC</option>
-              <option value="AL">AL</option>
-              <option value="AP">AP</option>
-              <option value="AM">AM</option>
-              <option value="BA">BA</option>
-              <option value="CE">CE</option>
-              <option value="DF">DF</option>
-              <option value="ES">ES</option>
-              <option value="GO">GO</option>
-              <option value="MA">MA</option>
-              <option value="MT">MT</option>
-              <option value="MS">MS</option>
-              <option value="MG">MG</option>
-              <option value="PA">PA</option>
-              <option value="PB">PB</option>
-              <option value="PR">PR</option>
-              <option value="PE">PE</option>
-              <option value="PI">PI</option>
-              <option value="RJ">RJ</option>
-              <option value="RN">RN</option>
-              <option value="RS">RS</option>
-              <option value="RO">RO</option>
-              <option value="RR">RR</option>
-              <option value="SC">SC</option>
-              <option value="SP">SP</option>
-              <option value="SE">SE</option>
-              <option value="TO">TO</option>
-            </select>
+          <form id="form" class="modal-form" novalidate>
+            <div class="modal-field-group">
+              <input
+                type="text"
+                id="nome"
+                data-id="new"
+                class="modal-field"
+                placeholder="Nome do Cliente"
+                maxlength="120"
+                required
+              />
+              <small class="field-error" data-error-for="nome"></small>
+            </div>
+            <div class="modal-field-group">
+              <input
+                type="email"
+                id="email"
+                class="modal-field"
+                placeholder="e-mail do Cliente"
+                maxlength="160"
+                required
+              />
+              <small class="field-error" data-error-for="email"></small>
+            </div>
+            <div class="modal-field-group">
+              <input
+                type="text"
+                id="celular"
+                class="modal-field"
+                placeholder="Celular do Cliente"
+                pattern="\(\d{2}\) \d{5}-\d{4}"
+                title="Use o formato (11) 99999-8888"
+                inputmode="numeric"
+                required
+              />
+              <small class="field-error" data-error-for="celular"></small>
+            </div>
+            <div class="modal-field-group">
+              <input
+                type="text"
+                id="cidade"
+                class="modal-field"
+                placeholder="Cidade do Cliente"
+                maxlength="120"
+                required
+              />
+              <small class="field-error" data-error-for="cidade"></small>
+            </div>
+            <div class="modal-field-group">
+              <select id="estado" class="modal-field" required>
+                <option value="">Estado</option>
+                <option value="AC">AC</option>
+                <option value="AL">AL</option>
+                <option value="AP">AP</option>
+                <option value="AM">AM</option>
+                <option value="BA">BA</option>
+                <option value="CE">CE</option>
+                <option value="DF">DF</option>
+                <option value="ES">ES</option>
+                <option value="GO">GO</option>
+                <option value="MA">MA</option>
+                <option value="MT">MT</option>
+                <option value="MS">MS</option>
+                <option value="MG">MG</option>
+                <option value="PA">PA</option>
+                <option value="PB">PB</option>
+                <option value="PR">PR</option>
+                <option value="PE">PE</option>
+                <option value="PI">PI</option>
+                <option value="RJ">RJ</option>
+                <option value="RN">RN</option>
+                <option value="RS">RS</option>
+                <option value="RO">RO</option>
+                <option value="RR">RR</option>
+                <option value="SC">SC</option>
+                <option value="SP">SP</option>
+                <option value="SE">SE</option>
+                <option value="TO">TO</option>
+              </select>
+              <small class="field-error" data-error-for="estado"></small>
+            </div>
           </form>
           <footer class="modal-footer">
-            <button id="salvar" class="button green">Salvar</button>
-            <button id="cancelar" class="button blue">Cancelar</button>
+            <button id="salvar" type="button" class="button green">Salvar</button>
+            <button id="cancelar" type="button" class="button blue">Cancelar</button>
           </footer>
         </div>
       </div>
+
+      <div
+        class="modal"
+        id="confirmModal"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirmTitle"
+        aria-hidden="true"
+      >
+        <div class="modal-content modal-small">
+          <header class="modal-header">
+            <h2 id="confirmTitle">Confirmação</h2>
+          </header>
+          <p class="confirm-message" id="confirmMessage"></p>
+          <footer class="modal-footer">
+            <button id="confirmOk" type="button" class="button red">Confirmar</button>
+            <button id="confirmCancel" type="button" class="button blue">Cancelar</button>
+          </footer>
+        </div>
+      </div>
+
+      <div
+        class="modal"
+        id="loginModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="loginTitle"
+        aria-hidden="true"
+      >
+        <div class="modal-content modal-small">
+          <header class="modal-header">
+            <h2 id="loginTitle">Entrar</h2>
+          </header>
+          <form id="loginForm" class="login-form">
+            <p class="login-hint">Este cadastro está protegido por senha.</p>
+            <input
+              type="password"
+              id="senha"
+              class="modal-field"
+              placeholder="Senha"
+              autocomplete="current-password"
+              required
+            />
+            <small class="field-error" id="loginError"></small>
+            <button type="submit" class="button green">Entrar</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="loading" id="loading" hidden>
+        <div class="spinner" role="status" aria-label="Carregando"></div>
+      </div>
+      <div class="toast-container" id="toasts" aria-live="polite"></div>
     </main>
     <footer>
       Layout base: Prof. Fernando Leonid &middot; Desenvolvido por Gilvam
