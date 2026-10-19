@@ -1,0 +1,22 @@
+{
+  "name": "crud-clientes",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cadastro de clientes com API REST, SQLite, paginação e fallback local",
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "node --test",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0",
+    "prettier": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}

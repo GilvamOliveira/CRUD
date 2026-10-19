@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: crud-clientes
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: DB_PATH
+        value: /data/clientes.db
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        value: https://gilvamoliveira.github.io
+    disk:
+      name: dados
+      mountPath: /data
+      sizeGB: 1
