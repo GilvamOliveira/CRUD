@@ -2,6 +2,8 @@
 
 Aplicação web para **cadastrar, listar, editar e excluir clientes**, feita com HTML, CSS e JavaScript puro. Possui **API REST com banco de dados SQLite**, paginação feita no servidor, autenticação opcional e um **fallback para `localStorage`** quando o back-end não está disponível (por exemplo, na demo do GitHub Pages).
 
+[![CI](https://github.com/GilvamOliveira/CRUD/actions/workflows/ci.yml/badge.svg)](https://github.com/GilvamOliveira/CRUD/actions/workflows/ci.yml)
+
 **Demo online:** https://gilvamoliveira.github.io/CRUD/
 
 ## Demonstração
