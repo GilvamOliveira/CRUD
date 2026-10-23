@@ -185,8 +185,6 @@ Projeto desenvolvido durante o curso, a partir do layout base do Prof. Fernando 
 
 Melhorias e correções feitas por mim: busca, ordenação por coluna, máscara de celular, campo de estado, bloqueio de e-mail duplicado, proteção contra XSS, correção de bugs no fluxo de edição, contador de resultados, estado vazio, exportação CSV, backup/importação JSON, bloqueio de celular duplicado, salvamento com `Enter`, paginação, back-end com API REST e SQLite, autenticação, filtros, dashboard, exclusão em lote com desfazer e testes automatizados.
 
-## Autor
+---
 
-**Gilvam Júnior Oliveira**
-
-[LinkedIn](https://linkedin.com/in/gilvam-oliveira) · [GitHub](https://github.com/GilvamOliveira)
+Autor: Gilvam Oliveira · [LinkedIn](https://www.linkedin.com/in/gilvam-oliveira/) · [GitHub](https://github.com/GilvamOliveira)
