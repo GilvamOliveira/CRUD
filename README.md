@@ -4,6 +4,8 @@ Aplicação web para **cadastrar, listar, editar e excluir clientes**, feita com
 
 **Demo online:** https://gilvamoliveira.github.io/CRUD/
 
+**Estudo de caso:** [contexto, decisões técnicas e próximos passos](CASE_STUDY.md).
+
 ## Demonstração
 
 ![Demonstração do CRUD em funcionamento](img/demo.gif)
