@@ -2,9 +2,7 @@
 
 Aplicação web para **cadastrar, listar, editar e excluir clientes**, feita com HTML, CSS e JavaScript puro. Possui **API REST com banco de dados SQLite**, paginação feita no servidor, autenticação opcional e um **fallback para `localStorage`** quando o back-end não está disponível (por exemplo, na demo do GitHub Pages).
 
-**Demo online:** https://gilvamoliveira.github.io/CRUD/
-
-**Estudo de caso:** [contexto, decisões técnicas e próximos passos](CASE_STUDY.md).
+**Demo online:** https://gilvamoliveira.github.io/client-registry/
 
 ## Demonstração
 
@@ -44,7 +42,7 @@ Cadastro de cliente, busca, filtros, paginação e exclusão em lote com desfaze
 ## Estrutura do projeto
 
 ```
-CRUD/
+client-registry/
 ├── index.html
 ├── js/
 │   ├── validacao.js
@@ -77,9 +75,9 @@ CRUD/
 
 1. Clone o repositório:
    ```bash
-   git clone https://github.com/GilvamOliveira/CRUD.git
+   git clone https://github.com/GilvamOliveira/client-registry.git
    ```
-2. Abra a pasta `CRUD` e dê dois cliques no `index.html`.
+2. Abra a pasta `client-registry` e dê dois cliques no `index.html`.
 
 Não precisa instalar nada. Todos os recursos de CRUD, filtros, paginação, backup e importação funcionam localmente.
 
